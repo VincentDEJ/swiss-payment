@@ -5,6 +5,7 @@ namespace Z38\SwissPayment\TransactionInformation;
 use Z38\SwissPayment\Money\Money;
 use Z38\SwissPayment\PaymentInformation\PaymentInformation;
 use Z38\SwissPayment\PostalAddressInterface;
+use Z38\SwissPayment\Text;
 
 /**
  * CreditTransfer contains all the information about the beneficiary and further information about the transaction.
@@ -67,10 +68,10 @@ abstract class CreditTransfer
      */
     public function __construct($instructionId, $endToEndId, Money $amount, $creditorName, PostalAddressInterface $creditorAddress)
     {
-        $this->instructionId = (string) $instructionId;
-        $this->endToEndId = (string) $endToEndId;
+        $this->instructionId = Text::assertIdentifier($instructionId);
+        $this->endToEndId = Text::assertIdentifier($endToEndId);
         $this->amount = $amount;
-        $this->creditorName = (string) $creditorName;
+        $this->creditorName = Text::assert($creditorName, 70);
         $this->creditorAddress = $creditorAddress;
     }
 
@@ -155,8 +156,8 @@ abstract class CreditTransfer
         $root = $doc->createElement('CdtTrfTxInf');
 
         $id = $doc->createElement('PmtId');
-        $id->appendChild($doc->createElement('InstrId', $this->instructionId));
-        $id->appendChild($doc->createElement('EndToEndId', $this->endToEndId));
+        $id->appendChild(Text::xml($doc, 'InstrId', $this->instructionId));
+        $id->appendChild(Text::xml($doc, 'EndToEndId', $this->endToEndId));
         $root->appendChild($id);
 
         if (!$paymentInformation->hasPaymentTypeInformation() && ($this->localInstrument !== null || $this->serviceLevel !== null)) {
@@ -193,7 +194,7 @@ abstract class CreditTransfer
     protected function buildCreditor(\DOMDocument $doc)
     {
         $creditor = $doc->createElement('Cdtr');
-        $creditor->appendChild($doc->createElement('Nm', $this->creditorName));
+        $creditor->appendChild(Text::xml($doc, 'Nm', $this->creditorName));
         $creditor->appendChild($this->creditorAddress->asDom($doc));
 
         return $creditor;
@@ -224,7 +225,7 @@ abstract class CreditTransfer
     {
         if (!empty($this->remittanceInformation)) {
             $remittanceNode = $doc->createElement('RmtInf');
-            $remittanceNode->appendChild($doc->createElement('Ustrd', $this->remittanceInformation));
+            $remittanceNode->appendChild(Text::xml($doc, 'Ustrd', $this->remittanceInformation));
             $transaction->appendChild($remittanceNode);
         }
     }

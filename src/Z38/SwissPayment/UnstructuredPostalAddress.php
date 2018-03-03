@@ -28,12 +28,12 @@ class UnstructuredPostalAddress implements PostalAddressInterface
     {
         $this->addressLines = [];
         if ($addressLine1 !== null) {
-            $this->addressLines[] = $addressLine1;
+            $this->addressLines[] = Text::assert($addressLine1, 70);
         }
         if ($addressLine2 !== null) {
-            $this->addressLines[] = $addressLine2;
+            $this->addressLines[] = Text::assert($addressLine2, 70);
         }
-        $this->country = (string) $country;
+        $this->country = Text::assertCountryCode($country);
     }
 
     /**
@@ -43,9 +43,9 @@ class UnstructuredPostalAddress implements PostalAddressInterface
     {
         $root = $doc->createElement('PstlAdr');
 
-        $root->appendChild($doc->createElement('Ctry', $this->country));
+        $root->appendChild(Text::xml($doc, 'Ctry', $this->country));
         foreach ($this->addressLines as $line) {
-            $root->appendChild($doc->createElement('AdrLine', $line));
+            $root->appendChild(Text::xml($doc, 'AdrLine', $line));
         }
 
         return $root;

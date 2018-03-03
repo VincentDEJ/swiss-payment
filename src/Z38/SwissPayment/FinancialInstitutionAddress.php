@@ -25,7 +25,7 @@ class FinancialInstitutionAddress implements FinancialInstitutionInterface
      */
     public function __construct($name, PostalAddressInterface $address)
     {
-        $this->name = (string) $name;
+        $this->name = Text::assert($name, 70);
         $this->address = $address;
     }
 
@@ -35,7 +35,7 @@ class FinancialInstitutionAddress implements FinancialInstitutionInterface
     public function asDom(\DOMDocument $doc)
     {
         $xml = $doc->createElement('FinInstnId');
-        $xml->appendChild($doc->createElement('Nm', $this->name));
+        $xml->appendChild(Text::xml($doc, 'Nm', $this->name));
         $xml->appendChild($this->address->asDom($doc));
 
         return $xml;
